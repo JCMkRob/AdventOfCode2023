@@ -1,10 +1,7 @@
-using System.Net;
-using System.Security.Cryptography;
 using AdventOfCode.Support;
 
 namespace AdventOfCode.Solutions;
 
-// red, green, or blue
 public record Bag(int Red, int Green, int Blue)
 {
     public static bool operator <=(Bag a, Bag b) 

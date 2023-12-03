@@ -1,3 +1,5 @@
+using System.Reflection;
+
 namespace AdventOfCode.Support;
 
 public static class Wrapper
@@ -42,6 +44,35 @@ public static class Wrapper
     {
         int dayNumber = int.Parse(day.Name[^2..]);
         
+        Console.Write($"Running day {dayNumber:00} Part {part:0}: ");
+        try 
+        {
+            if (GetSolutionFor(day, part) is not MethodInfo method) 
+            {
+                Console.WriteLine("Could not find method.");
+                return;
+            }
+            
+            if (method.Invoke(obj: null, parameters: [ Manager.ReadLines(day: dayNumber, part: part) ]) is double answer)
+            {
+                Console.WriteLine(answer);
+            }
+            else
+            {
+                Console.WriteLine("Failed to invoke method.");
+            }
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine("Exception invoking method.");
+            Console.WriteLine(ex);
+        }
+    }
+
+    private static MethodInfo? GetSolutionFor(Type day, int part)
+    {
+        int dayNumber = int.Parse(day.Name[^2..]);
+        
         var methods = day.GetMethods().Where(f => f.IsDefined(typeof(Solution), inherit: true));
         
         foreach(var method in methods)
@@ -49,24 +80,10 @@ public static class Wrapper
             if (Attribute.GetCustomAttribute(method, typeof(Solution)) is not Solution solution) continue;
             if (solution.Part != part) continue;
 
-            Console.Write($"Running day {dayNumber:00} Part {part:0}: ");
-            try 
-            {
-                if (method.Invoke(obj: null, parameters: [ Manager.ReadLines(day: dayNumber, part: part) ]) is double answer)
-                {
-                    Console.WriteLine(answer);
-                }
-                else
-                {
-                    Console.WriteLine("Failed to invoke method.");
-                }
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine("Exception invoking method.");
-                Console.WriteLine(ex);
-            }
+            return method;
         }
+
+        return null;
     }
 }
 
