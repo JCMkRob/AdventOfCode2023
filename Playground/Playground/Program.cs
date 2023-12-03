@@ -3,9 +3,6 @@ using AdventOfCode.Support;
 
 // YearBuilder.CreateEmptyInputs();
 
-Wrapper.Test(typeof(Day02));
+Wrapper.Test(typeof(Day03));
 
-Wrapper.Run(typeof(Day02), part: 2);
-
-Console.WriteLine();
-
+Wrapper.Run(typeof(Day03), part: 2);
