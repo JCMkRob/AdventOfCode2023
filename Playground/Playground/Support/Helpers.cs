@@ -1,8 +1,4 @@
-using System.Diagnostics.Contracts;
-using System.Reflection;
-
 namespace AdventOfCode.Support;
-
 
 public static class Wrapper
 {
@@ -12,8 +8,8 @@ public static class Wrapper
 
         foreach(var field in fields)
         {
-            if (Attribute.GetCustomAttribute(field, typeof(Example)) is not Example example) return;
-            if (field.GetValue(day) is not object input) return;
+            if (Attribute.GetCustomAttribute(field, typeof(Example)) is not Example example) continue;
+            if (field.GetValue(day) is not object input) continue;
 
             Console.Write($"Testing {field.Name}: ");
             string testResult = "Failed to run test.";
@@ -42,9 +38,35 @@ public static class Wrapper
         }
     }
 
-    public static void Run(int day, int part)
+    public static void Run(Type day, int part)
     {
+        int dayNumber = int.Parse(day.Name[^2..]);
+        
+        var methods = day.GetMethods().Where(f => f.IsDefined(typeof(Solution), inherit: true));
+        
+        foreach(var method in methods)
+        {
+            if (Attribute.GetCustomAttribute(method, typeof(Solution)) is not Solution solution) continue;
+            if (solution.Part != part) continue;
 
+            Console.Write($"Running day {dayNumber:00} Part {part:0}: ");
+            try 
+            {
+                if (method.Invoke(obj: null, parameters: [ Manager.ReadLines(day: dayNumber, part: part) ]) is double answer)
+                {
+                    Console.WriteLine(answer);
+                }
+                else
+                {
+                    Console.WriteLine("Failed to invoke method.");
+                }
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine("Exception invoking method.");
+                Console.WriteLine(ex);
+            }
+        }
     }
 }
 
