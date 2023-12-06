@@ -4,9 +4,7 @@ namespace AdventOfCode.Solutions;
 
 public static class Day06
 {
-    public record RaceRecord(double Time, double Distance)
-    {
-    }
+    public record RaceRecord(double Time, double Distance);
 
     public static double PartOneTest(string s) => PartOne(s.Split("\n").Select(s => s.TrimEnd()));
 

@@ -3,7 +3,7 @@ using AdventOfCode.Support;
 
 namespace AdventOfCode.Solutions;
 
-public static class Day07
+public static class DayXX
 {
     public static double PartOneTest(string s) => PartOne(s.Split("\n").Select(s => s.TrimEnd()));
 
@@ -22,13 +22,13 @@ public static class Day07
             """;
 
     [Solution(part: 1)]
-    public static double PartOne(IEnumerable<string> strings)
+    public static double PartOne(IEnumerable<string> input)
     {
         return 0;
     }
 
     [Solution(part: 2)]
-    public static double PartTwo(IEnumerable<string> strings)
+    public static double PartTwo(IEnumerable<string> input)
     {
         return 0;
     }
