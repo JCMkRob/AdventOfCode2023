@@ -2,8 +2,11 @@
 using AdventOfCode.Support;
 
 // YearBuilder.CreateEmptyInputs();
+await YearBuilder.CreateEmptySolutions();
 
-Wrapper.Test(typeof(Day06));
+var day = typeof(Day07);
 
-Wrapper.Run(typeof(Day06), part: 1);
-Wrapper.Run(typeof(Day06), part: 2);
+Wrapper.Test(day);
+
+Wrapper.Run(day, part: 1);
+Wrapper.Run(day, part: 2);

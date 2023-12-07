@@ -1,4 +1,5 @@
 using System.Reflection;
+using AdventOfCode.Solutions;
 
 namespace AdventOfCode.Support;
 
@@ -6,39 +7,63 @@ public static class Wrapper
 {
     public static void Test(Type day)
     {
-        var fields = day.GetFields().Where(f => f.IsDefined(typeof(Example), inherit: true));
-
-        foreach(var field in fields)
+        try 
         {
-            if (Attribute.GetCustomAttribute(field, typeof(Example)) is not Example example) continue;
-            if (field.GetValue(day) is not object input) continue;
+            var fields = day.GetFields().Where(f => f.IsDefined(typeof(Example), inherit: true));
 
-            Console.Write($"Testing {field.Name}: ");
-            string testResult = "Failed to run test.";
-
-            foreach(var method in day.GetMethods())
+            foreach(var field in fields)
             {
-                if (method.Name != example.Solver) continue;
-                if (method.ReturnType != typeof(double)) continue;
-                if (method.GetParameters().Length != 1) continue;
-                if (!method.GetParameters().All(p => p.ParameterType == input.GetType())) continue;
+                if (Attribute.GetCustomAttribute(field, typeof(Example)) is not Example example) continue;
+                
+                if (field.GetValue(day) is not object exampleInput) return;
 
-                if (method.Invoke(obj: null, [ input ]) is double answer)
+                Console.Write($"Testing {field.Name}: ");
+                string testResult = "Failed to run test.";
+
+                foreach(var method in day.GetMethods())
                 {
-                    if (example.Solution == answer)
+                    if (method.Name != example.Solver) continue;
+                    if (method.ReturnType != typeof(double)) continue;
+                    if (method.GetParameters().Length != 1) continue;
+
+                    object? evaluationResult = example.StrictTypeEvaluation ? StrictTypeEvaluation(exampleInput, method) : DefaultTypeEvaluation(exampleInput, method);
+                    
+                    if (evaluationResult is double answer)
                     {
-                        testResult = $"Passed.";
-                    }
-                    else 
-                    {
-                        testResult = $"Failed. Expected {example.Solution}, Received {answer}";
+                        if (example.Solution == answer)
+                        {
+                            testResult = $"Passed.";
+                        }
+                        else 
+                        {
+                            testResult = $"Failed. Expected {example.Solution}, Received {answer}";
+                        }
                     }
                 }
-            }
 
-            Console.WriteLine(testResult);
+                Console.WriteLine(testResult);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception thrown running tests for class {day?.Name}:\n{ex}");
         }
     }
+
+    private static object? DefaultTypeEvaluation(object exampleInput, MethodInfo method)
+    {
+        if (exampleInput is not string input) return null;
+        if (!method.GetParameters().All(p => p.ParameterType == typeof(IEnumerable<string>))) return null;
+
+        return method.Invoke(obj: null, [ input.Split("\n").Select(s => s.TrimEnd()) ]);
+    }   
+
+    private static object? StrictTypeEvaluation(object exampleInput, MethodInfo method)
+    {
+        if (!method.GetParameters().All(p => p.ParameterType == exampleInput.GetType())) return null;
+
+        return method.Invoke(obj: null, [ exampleInput ]);
+    }  
 
     public static void Run(Type day, int part)
     {
@@ -90,11 +115,14 @@ public static class Wrapper
 public static class Manager
 {
     public static string PlaygroundPath => $@"{Directory.GetCurrentDirectory()}\..\..\..";
+    
+    public static string SolutionPath() => Path.Combine(PlaygroundPath, "Solutions");
     public static string SolutionPath(int day)
     {
         return Path.Combine(PlaygroundPath, $@"Solutions\Day{day:00}.cs");
     }
 
+    public static string InputPath() => Path.Combine(PlaygroundPath, "Inputs");
     public static string InputPath(int day, int part) 
     {
         return Path.Combine(PlaygroundPath, $@"Inputs\day{day:00}part{part:0}.txt");
@@ -110,36 +138,82 @@ public static class Manager
 
 public static class YearBuilder
 {
+    public static async Task SetupNewYear()
+    {
+        CreateEmptyInputs();
+        await CreateEmptySolutions();
+    }
+
     public static void CreateEmptyInputs()
     {
-        string path = Path.Combine(Manager.PlaygroundPath, "Inputs");
-        
-        if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-
-        for(int i = 1; i <= 25; i++)
+        try
         {
-            var part1 = Path.Combine(path, $"day{i:00}part1.txt");
-            var part2 = Path.Combine(path, $"day{i:00}part2.txt");
+            string path = Manager.InputPath();
 
-            if (!File.Exists(part1)) File.Create(part1);
-            if (!File.Exists(part2)) File.Create(part2);
+            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+
+            int adventOfCodeDayCount = 25;
+
+            for(int day = 1; day <= adventOfCodeDayCount; day++)
+            {
+                var part1 = Manager.InputPath(day, part: 1);
+                var part2 = Manager.InputPath(day, part: 2);
+
+                if (!File.Exists(part1)) File.Create(part1);
+                if (!File.Exists(part2)) File.Create(part2);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception thrown creating empty inputs:\n{ex}");
         }
     }
 
-    public static void CreateEmptySolutions()
+    public static async Task CreateEmptySolutions()
     {
-        
-        // string path = Path.Combine(Manager.PlaygroundPath, "Solutions");
+        try
+        {
+            string path = Manager.SolutionPath();
 
-        // if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+            if (!Directory.Exists(path)) 
+            {
+                // If there is no directory, there is no default implementation of a day, so return.
+                Directory.CreateDirectory(path);
+                return; 
+            }
 
-        // for(int i = 1; i <= 25; i++)
-        // {
-        //     var day = Path.Combine(path, $"day{i:00}.cs");
+            var defaultImplementationName = nameof(DayXX);
+            var defaultImplementationPath = Path.Combine(path, $"{defaultImplementationName}.cs");
 
-        //     if (!File.Exists(day)) File.Create(day);
-        // }
+            if (!File.Exists(defaultImplementationPath)) 
+            {
+                // If there is no default implementation of a day, there is no default implementation of a day, so return.
+                return;
+            }    
 
-        // TODO Create with boiler plate
+            var defaultImplementationText = File.ReadAllText(defaultImplementationPath);
+
+            int adventOfCodeDayCount = 25;
+
+            for(int day = 1; day <= adventOfCodeDayCount; day++)
+            {
+                var dayName = $"Day{day:00}";
+                var dayPath = Path.Combine(path, $"{dayName}.cs");
+                var dayText = defaultImplementationText.Replace(defaultImplementationName, dayName);
+
+                if (!File.Exists(dayPath)) 
+                { 
+                    using StreamWriter outputFile = new(dayPath);
+                    
+                    await outputFile.WriteLineAsync(dayText);
+
+                    outputFile.Close();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception thrown creating empty inputs:\n{ex}");
+        }
     }
 }

@@ -2,7 +2,7 @@ using AdventOfCode.Support;
 
 namespace AdventOfCode.Solutions;
 
-public static class DayXX
+public static class Day17
 {
     [Example(solver: nameof(PartOne), solution: -1)]
     public static readonly string PartOneExample = 
