@@ -2,24 +2,22 @@ using AdventOfCode.Support;
 
 namespace AdventOfCode.Solutions;
 
-public record Bag(int Red, int Green, int Blue)
-{
-    public static bool operator <=(Bag a, Bag b) 
-    {
-        return (a.Red <= b.Red) && (a.Green <= b.Green) && (a.Blue <= b.Blue);
-    }
-
-    public static bool operator >=(Bag a, Bag b) 
-    {
-        return (a.Red >= b.Red) && (a.Green >= b.Green) && (a.Blue >= b.Blue);
-    }
-}
-
 public static class Day02
 {
-    public static double PartOneTest(string s) => PartOne(s.Split("\n"), new(Red: 12, Green: 13, Blue: 14));
+    private record Bag(int Red, int Green, int Blue)
+    {
+        public static bool operator <=(Bag a, Bag b) 
+        {
+            return (a.Red <= b.Red) && (a.Green <= b.Green) && (a.Blue <= b.Blue);
+        }
 
-    [Example(solver: nameof(PartOneTest), solution: 8)]
+        public static bool operator >=(Bag a, Bag b) 
+        {
+            return (a.Red >= b.Red) && (a.Green >= b.Green) && (a.Blue >= b.Blue);
+        }
+    }
+
+    [Example(solver: nameof(PartOne), solution: 8)]
     public static readonly string PartOneExample = 
             """
             Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
@@ -29,9 +27,8 @@ public static class Day02
             Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
             """;
 
-    public static double PartTwoTest(string s) => PartTwo(s.Split("\n"));
     
-    [Example(solver: nameof(PartTwoTest), solution: 2286)]
+    [Example(solver: nameof(PartTwo), solution: 2286)]
     public static readonly string PartTwoExample = 
             """
             Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
@@ -43,20 +40,20 @@ public static class Day02
     
 
     [Solution(part: 1)]
-    public static double PartOne(IEnumerable<string> s) => PartOne(s, new(Red: 12, Green: 13, Blue: 14));
+    public static double PartOne(IEnumerable<string> input) => PartOne(input, new(Red: 12, Green: 13, Blue: 14));
 
-    private static double PartOne(IEnumerable<string> s, Bag max)
+    private static double PartOne(IEnumerable<string> input, Bag max)
     {
-        return s
+        return input
             .Select(Game)
             .Where(game => game.bags.All(bag => bag <= max))
             .Sum(game => game.gameID);
     }
 
     [Solution(part: 2)]
-    public static double PartTwo(IEnumerable<string> s)
+    public static double PartTwo(IEnumerable<string> input)
     {
-        return s
+        return input
             .Select(Game)
             .Select(g => Power(g.bags))
             .Sum();

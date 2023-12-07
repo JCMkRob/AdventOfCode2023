@@ -26,39 +26,16 @@ public static class Day01
             7pqrstsixteen
             """; 
 
-    public static double Example()
+    [Solution(part: 1)]
+    public static double PartOne(IEnumerable<string> input)
     {
-        return Manager.ReadLines(day: 1, part: 2)
-            .Select(line => line.ToDoubleIncludeWords())
-            .Sum();
+        return input.Select(line => line.ToDouble()).Sum();
     }
 
-    public static double PartOne()
+    [Solution(part: 2)]
+    public static double PartTwo(IEnumerable<string> input)
     {
-        return Manager.ReadLines(day: 1, part: 1)
-            .Select(line => line.ToDouble())
-            .Sum();
-    }
-    public static double PartOne(string s)
-    {
-        return s.Split("\n").Select(line => line.ToDouble()).Sum();
-    }
-
-    public static double PartTwo()
-    {
-        return Manager.ReadLines(day: 1, part: 2)
-            .Select(line => line.ToDoubleIncludeWords())
-            .Sum();
-    }
-
-    public static double PartTwo(string s)
-    {
-        return s.Split("\n").Select(line => line.ToDoubleIncludeWords()).Sum();
-    }
-
-    public static double PartTwo(IEnumerable<string> s)
-    {
-        return s.Select(line => line.ToDoubleIncludeWords()).Sum();
+        return input.Select(line => line.ToDoubleIncludeWords()).Sum();
     }
 
     private static double ToDouble(this string line)

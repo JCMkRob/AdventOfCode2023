@@ -1,13 +1,10 @@
-using System.CodeDom.Compiler;
 using AdventOfCode.Support;
 
 namespace AdventOfCode.Solutions;
 
 public static class Day04
 {
-    public static double PartOneTest(string s) => PartOne(s.Split("\n").Select(s => s.TrimEnd()));
-
-    [Example(solver: nameof(PartOneTest), solution: 13)]
+    [Example(solver: nameof(PartOne), solution: 13)]
     public static readonly string PartOneExample = 
             """
             Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
@@ -18,9 +15,7 @@ public static class Day04
             Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11
             """;
 
-    public static double PartTwoTest(string s) => PartTwo(s.Split("\n").Select(s => s.TrimEnd()));
-
-    [Example(solver: nameof(PartTwoTest), solution: 30)]
+    [Example(solver: nameof(PartTwo), solution: 30)]
     public static readonly string PartTwoExample = 
             """
             Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
@@ -32,10 +27,29 @@ public static class Day04
             """;
 
     [Solution(part: 1)]
-    public static double PartOne(IEnumerable<string> strings)
+    public static double PartOne(IEnumerable<string> input)
     {
-        return strings.Select(Score).Sum();
+        return input.Select(Score).Sum();
     }
+
+    [Solution(part: 2)]
+    public static double PartTwo(IEnumerable<string> input)
+    {
+        int currentCard = 0;
+        Dictionary<int, int> cards = [];
+
+        foreach(var s in input)
+        {   
+            cards.SumAdd(currentCard, 1);
+
+            Copies(s, currentCard, cards);
+
+            currentCard++;
+        }
+
+        return cards.Values.Sum();
+    }
+
 
     public static double Score(string s)
     {
@@ -47,24 +61,6 @@ public static class Day04
         var winningCount = winning.Intersect(numbers).Count();
         
         return (0 < winningCount) ? Math.Pow(2, winningCount - 1) : 0;
-    }
-
-    [Solution(part: 2)]
-    public static double PartTwo(IEnumerable<string> strings)
-    {
-        int currentCard = 0;
-        Dictionary<int, int> cards = [];
-
-        foreach(var s in strings)
-        {   
-            cards.SumAdd(currentCard, 1);
-
-            Copies(s, currentCard, cards);
-
-            currentCard++;
-        }
-
-        return cards.Values.Sum();
     }
 
     public static void Copies(string s, int currentCard, Dictionary<int, int> cards)

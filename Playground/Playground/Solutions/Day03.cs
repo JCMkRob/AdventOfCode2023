@@ -1,13 +1,22 @@
-using System.CodeDom.Compiler;
 using AdventOfCode.Support;
 
 namespace AdventOfCode.Solutions;
 
 public static class Day03
 {
-    public static double PartOneTest(string s) => PartOne(s.Split("\n").Select(s => s.TrimEnd()));
+    // NOTE: This is where I had a 'learning experience' with records.
+    // These are kept as internal private classes as the names may be re-used and these don't define ennough behaviour to be worth pilling out.
+    private class ValueContainer(double value) 
+    {
+        public double Value {get; set;} = value;
+    }
 
-    [Example(solver: nameof(PartOneTest), solution: 4361)]
+    private class SymbolContainer(char symbol)
+    {
+        public char Value {get; set;} = symbol;
+    }
+
+    [Example(solver: nameof(PartOne), solution: 4361)]
     public static readonly string PartOneExample = 
             """
             467..114..
@@ -22,9 +31,8 @@ public static class Day03
             .664.598..
             """;
 
-    public static double PartTwoTest(string s) => PartTwo(s.Split("\n").Select(s => s.TrimEnd()));
 
-    [Example(solver: nameof(PartTwoTest), solution: 467835)]
+    [Example(solver: nameof(PartTwo), solution: 467835)]
     public static readonly string PartTwoExample = 
             """
             467..114..
@@ -39,23 +47,14 @@ public static class Day03
             .664.598..
             """;
 
-    private class ValueContainer(double value) 
-    {
-        public double Value {get; set;} = value;
-    }
-
-    private class SymbolContainer(char symbol)
-    {
-        public char Value {get; set;} = symbol;
-    }
 
     [Solution(part: 1)]
-    public static double PartOne(IEnumerable<string> strings)
+    public static double PartOne(IEnumerable<string> input)
     {
         Dictionary<(double x, double y), List<ValueContainer>> valuesCoordinates = [];
         Dictionary<(double x, double y), List<SymbolContainer>> symbolsCoordinates = [];
 
-        Generate(strings, valuesCoordinates, symbolsCoordinates);
+        Generate(input, valuesCoordinates, symbolsCoordinates);
 
         HashSet<ValueContainer> MissingPartNumbers = [];
 
@@ -74,12 +73,12 @@ public static class Day03
     }
 
     [Solution(part: 2)]
-    public static double PartTwo(IEnumerable<string> strings)
+    public static double PartTwo(IEnumerable<string> input)
     {
         Dictionary<(double x, double y), List<ValueContainer>> valuesCoordinates = [];
         Dictionary<(double x, double y), List<SymbolContainer>> symbolsCoordinates = [];
 
-        Generate(strings, valuesCoordinates, symbolsCoordinates);
+        Generate(input, valuesCoordinates, symbolsCoordinates);
 
         Dictionary<SymbolContainer, List<ValueContainer>> gearsWithRatios = [];
 
@@ -122,8 +121,7 @@ public static class Day03
         return result;
     }
 
-    private static void Generate(
-        IEnumerable<string> strings,
+    private static void Generate(IEnumerable<string> strings,
         Dictionary<(double x, double y), List<ValueContainer>> valuesCoordinates, 
         Dictionary<(double x, double y), List<SymbolContainer>>  symbolsCoordinates)
     {

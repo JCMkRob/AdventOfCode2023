@@ -1,12 +1,11 @@
-﻿using AdventOfCode.Solutions;
-using AdventOfCode.Support;
+﻿using AdventOfCode.Support;
 
-// YearBuilder.CreateEmptyInputs();
-await YearBuilder.CreateEmptySolutions();
+YearBuilder.SetupNewYear();
 
-var day = typeof(Day07);
+YearWrapper.CurrentDayRunAndTest();
 
-Wrapper.Test(day);
+YearWrapper.TestAll();
+YearWrapper.RunAll();
 
-Wrapper.Run(day, part: 1);
-Wrapper.Run(day, part: 2);
+
+

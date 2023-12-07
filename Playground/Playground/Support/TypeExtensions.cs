@@ -2,6 +2,8 @@ using System.Numerics;
 
 namespace AdventOfCode.Support;
 
+
+// Note, once the file gets large, split into separate files with a folder called: TypeExtensions 
 public static class DictionaryExtensions
 {
     public static void ProductAdd<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key, TValue value) 

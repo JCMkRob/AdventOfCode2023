@@ -1,24 +1,23 @@
-using System.CodeDom.Compiler;
-using System.Diagnostics;
 using AdventOfCode.Support;
 
 namespace AdventOfCode.Solutions;
 
-public enum HandStrength
-{
-    FiveOfAKind = 6, 
-    FourOfAKind = 5,
-    FullHouse = 4,
-    ThreeOfAKind = 3,
-    TwoPair = 2,
-    OnePair = 1,
-    HighCard = 0
-}
-
-public record CamelHand(string Hand, double Bid, HandStrength Strength);
-
 public static class Day07
 {
+
+    private enum HandStrength
+    {
+        FiveOfAKind = 6, 
+        FourOfAKind = 5,
+        FullHouse = 4,
+        ThreeOfAKind = 3,
+        TwoPair = 2,
+        OnePair = 1,
+        HighCard = 0
+    }
+
+    private record CamelHand(string Hand, double Bid, HandStrength Strength);
+
     [Example(solver: nameof(PartOne), solution: 6440)]
     public static readonly string PartOneExample = 
             """

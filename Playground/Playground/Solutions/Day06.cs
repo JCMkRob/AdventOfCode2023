@@ -4,20 +4,17 @@ namespace AdventOfCode.Solutions;
 
 public static class Day06
 {
-    public record RaceRecord(double Time, double Distance);
+    private record RaceRecord(double Time, double Distance);
 
-    public static double PartOneTest(string s) => PartOne(s.Split("\n").Select(s => s.TrimEnd()));
 
-    [Example(solver: nameof(PartOneTest), solution: 288)]
+    [Example(solver: nameof(PartOne), solution: 288)]
     public static readonly string PartOneExample = 
             """
             Time:      7  15   30
             Distance:  9  40  200
             """;
 
-    public static double PartTwoTest(string s) => PartTwo(s.Split("\n").Select(s => s.TrimEnd()));
-
-    [Example(solver: nameof(PartTwoTest), solution: 71503)]
+    [Example(solver: nameof(PartTwo), solution: 71503)]
     public static readonly string PartTwoExample = 
             """
             Time:      7  15   30

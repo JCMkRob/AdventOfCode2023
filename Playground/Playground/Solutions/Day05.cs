@@ -1,13 +1,69 @@
-using System.CodeDom.Compiler;
 using AdventOfCode.Support;
 
 namespace AdventOfCode.Solutions;
 
+// TODO: I need to make a generic string parser for the standard input style of AoC.
+
+// public as definitely worth re-using. Will likely pull out into support at some point.
+public record Interval(double Start, double End)
+{
+    public bool TryGetIntersection(Interval with, out Interval intersection)
+    {
+        // https://scicomp.stackexchange.com/questions/26258/the-easiest-way-to-find-intersection-of-two-intervals
+
+        intersection = new Interval(0, 0);
+
+        (double s, double e) Ia = new (Start, End);
+        (double s, double e) Ib = new (with.Start, with.End);
+
+
+        if ((Ib.s > Ia.e) || (Ia.s > Ib.e)) 
+        {
+            return false;
+        }
+        else
+        {
+            intersection = new Interval(Math.Max(Ia.s, Ib.s), Math.Min(Ia.e, Ib.e));
+
+            return true;
+        }
+    }
+
+    public IEnumerable<Interval> Without(Interval interval)
+    {
+        if ((End < interval.Start) || (interval.End < Start))
+        {
+            // No intersection
+            return [ new Interval(Start, End) ];
+        }
+        else if ((interval.Start <= Start) && (End <= interval.End))
+        {
+            // Full intersection
+            return [];
+        }
+        else if ((interval.Start <= Start) && (interval.End < End))
+        {
+            // Left partial intersection
+            return [ new Interval(interval.End + 1, End) ];
+        }
+        else if ((Start < interval.Start) && (End <= interval.End))
+        {
+            // Right partial intersection
+            return [ new Interval(Start, interval.Start - 1) ];
+        }
+        else 
+        {
+            // Center intersection
+            return [ new Interval(Start, interval.Start - 1), new Interval(interval.End + 1, End) ];
+        }
+    }
+
+    public Interval Shift(double value) => new(Start + value, End + value);
+}
+
 public static class Day05
 {
-    public static double PartOneTest(string s) => PartOne(s.Split("\n").Select(s => s.TrimEnd()));
-
-    [Example(solver: nameof(PartOneTest), solution: 35)]
+    [Example(solver: nameof(PartOne), solution: 35)]
     public static readonly string PartOneExample = 
             """
             seeds: 79 14 55 13
@@ -45,9 +101,8 @@ public static class Day05
             56 93 4
             """;
 
-    public static double PartTwoTest(string s) => PartTwo(s.Split("\n").Select(s => s.TrimEnd()));
 
-    [Example(solver: nameof(PartTwoTest), solution: 46)]
+    [Example(solver: nameof(PartTwo), solution: 46)]
     public static readonly string PartTwoExample = 
             """
             seeds: 79 14 55 13
@@ -85,61 +140,7 @@ public static class Day05
             56 93 4
             """;
 
-    public record Interval(double Start, double End)
-    {
-        public bool TryGetIntersection(Interval with, out Interval intersection)
-        {
-            // https://scicomp.stackexchange.com/questions/26258/the-easiest-way-to-find-intersection-of-two-intervals
-
-            intersection = new Interval(0, 0);
-
-            (double s, double e) Ia = new (Start, End);
-            (double s, double e) Ib = new (with.Start, with.End);
-
-
-            if ((Ib.s > Ia.e) || (Ia.s > Ib.e)) 
-            {
-                return false;
-            }
-            else
-            {
-                intersection = new Interval(Math.Max(Ia.s, Ib.s), Math.Min(Ia.e, Ib.e));
-
-                return true;
-            }
-        }
-
-        public IEnumerable<Interval> Without(Interval interval)
-        {
-            if ((End < interval.Start) || (interval.End < Start))
-            {
-                // No intersection
-                return [ new Interval(Start, End) ];
-            }
-            else if ((interval.Start <= Start) && (End <= interval.End))
-            {
-                // Full intersection
-                return [];
-            }
-            else if ((interval.Start <= Start) && (interval.End < End))
-            {
-                // Left partial intersection
-                return [ new Interval(interval.End + 1, End) ];
-            }
-            else if ((Start < interval.Start) && (End <= interval.End))
-            {
-                // Right partial intersection
-                return [ new Interval(Start, interval.Start - 1) ];
-            }
-            else 
-            {
-                // Center intersection
-                return [ new Interval(Start, interval.Start - 1), new Interval(interval.End + 1, End) ];
-            }
-        }
-
-        public Interval Shift(double value) => new(Start + value, End + value);
-    }
+    
 
     [Solution(part: 1)]
     public static double PartOne(IEnumerable<string> input)
