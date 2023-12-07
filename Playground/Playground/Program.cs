@@ -1,6 +1,6 @@
 ﻿using AdventOfCode.Support;
 
-YearBuilder.SetupNewYear();
+await YearBuilder.SetupNewYear();
 
 YearWrapper.CurrentDayRunAndTest();
 
