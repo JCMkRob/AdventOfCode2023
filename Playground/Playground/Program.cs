@@ -1,11 +1,11 @@
 ﻿using AdventOfCode.Support;
 
-await YearBuilder.SetupNewYear();
+// await YearBuilder.SetupNewYear();
 
 YearWrapper.CurrentDayRunAndTest();
 
-YearWrapper.TestAll();
-YearWrapper.RunAll();
+// YearWrapper.TestAll();
+// YearWrapper.RunAll();
 
 
 

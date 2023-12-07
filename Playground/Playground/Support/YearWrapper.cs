@@ -26,10 +26,11 @@ public static class YearWrapper
             // TODO: Oh, that's an idea. Could have year as an optional parameter and break solutions and Inputs down by year. 
             // I'd want to move previous years to their own folders within a root folder called PreviousYears, To keep the structure clean for the current year.
             
-            Console.WriteLine($"Running Advent of Code {DateTime.Now.Year}, Day {dayOfMonth:00}...");
 
             if (Type.GetType($"AdventOfCode.Solutions.Day{dayOfMonth:00}") is Type currentDaySolution)
             {
+                Console.WriteLine($"Running Advent of Code {DateTime.Now.Year}, Day {dayOfMonth:00}...");
+                
                 Test(currentDaySolution);
 
                 Run(currentDaySolution, part: 1);
