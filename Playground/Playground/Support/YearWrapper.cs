@@ -23,6 +23,7 @@ public static class YearWrapper
                 return;
             }
 
+            // TODO: Time shift
             // TODO: Oh, that's an idea. Could have year as an optional parameter and break solutions and Inputs down by year. 
             // I'd want to move previous years to their own folders within a root folder called PreviousYears, To keep the structure clean for the current year.
             
@@ -30,7 +31,7 @@ public static class YearWrapper
             if (Type.GetType($"AdventOfCode.Solutions.Day{dayOfMonth:00}") is Type currentDaySolution)
             {
                 Console.WriteLine($"Running Advent of Code {DateTime.Now.Year}, Day {dayOfMonth:00}...");
-                
+
                 Test(currentDaySolution);
 
                 Run(currentDaySolution, part: 1);
@@ -68,16 +69,25 @@ public static class YearWrapper
         {
             var fields = day.GetFields().Where(f => f.IsDefined(typeof(Example), inherit: true));
 
+            Dictionary<(string name, Type returnType, Type[] propertyTypes), MethodInfo> methodDictionary = [];
+            
+            foreach(var method in day.GetMethods())
+            {
+                methodDictionary.Add(new (method.Name, method.ReturnType, method.GetParameters().Select(s => s.ParameterType).ToArray()), method);
+            }
+            
             foreach(var field in fields)
             {
+                if (field.GetValue(day) is not object input) continue;
                 if (Attribute.GetCustomAttribute(field, typeof(Example)) is not Example example) continue;
                 
-                if (field.GetValue(day) is not object exampleInput) return;
-
                 Console.Write($"Testing {day.Name} {field.Name}: ");
 
                 string testResult = "Failed to run test.";
 
+                //TODO: HERE START BACK HERE
+                
+                if (lookUp.TryGetValue(new ()))
                 foreach(var method in day.GetMethods())
                 {
                     if (method.Name != example.Solver) continue;

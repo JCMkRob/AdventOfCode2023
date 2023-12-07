@@ -27,4 +27,13 @@ public static class Day08
     {
         return 0;
     }
+
+    // TODO: double
+    
+    [Example<double>(solver: nameof(SomeDumbFunction), solution: 30)]
+    public static double[] d = [ 1, 2, 3];
+    public static double SomeDumbFunction(double[] input)
+    {
+        return 0;
+    }
 }

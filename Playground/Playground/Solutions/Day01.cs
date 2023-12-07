@@ -29,13 +29,13 @@ public static class Day01
     [Solution(part: 1)]
     public static double PartOne(IEnumerable<string> input)
     {
-        return input.Select(line => line.ToDouble()).Sum();
+        return input.Select(ToDouble).Sum();
     }
 
     [Solution(part: 2)]
     public static double PartTwo(IEnumerable<string> input)
     {
-        return input.Select(line => line.ToDoubleIncludeWords()).Sum();
+        return input.Select(ToDoubleIncludeWords).Sum();
     }
 
     private static double ToDouble(this string line)
