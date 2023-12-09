@@ -208,22 +208,6 @@ public static class Day05
         return current.Select(i => i.Start).Min();
     }
 
-    private static bool TryGetIntersection((double s, double e) Ia, (double s, double e) Ib, out (double s, double e) Io)
-    {
-        Io = (0, 0);
-
-        if ((Ib.s > Ia.e) || (Ia.s > Ib.e)) 
-        {
-            return false;
-        }
-        else
-        {
-            Io = (Math.Max(Ia.s, Ib.s), Math.Max(Ia.s, Ib.s));
-
-            return true;
-        }
-    }
-
     private static void PartOneAddSeeds(string s, List<Interval> list)
     {   
         foreach(double d in s.Trim().Split(' ').Select(double.Parse))
@@ -231,6 +215,7 @@ public static class Day05
             list.Add(new (d, d));
         }
     }
+    
     private static void PartTwoAddSeeds(string s, List<Interval> list)
     {   
         double[] numbers = s.Trim().Split(' ').Select(double.Parse).ToArray();

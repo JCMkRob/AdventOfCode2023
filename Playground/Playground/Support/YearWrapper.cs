@@ -63,50 +63,57 @@ public static class YearWrapper
         }
     }
 
+    private record MethodSignature(string Name, Type ReturnType, Type PropertyType);
     public static void Test(Type day)
     {
         try 
         {
             var fields = day.GetFields().Where(f => f.IsDefined(typeof(Example), inherit: true));
 
-            Dictionary<(string name, Type returnType, Type[] propertyTypes), MethodInfo> methodDictionary = [];
-            
-            foreach(var method in day.GetMethods())
-            {
-                methodDictionary.Add(new (method.Name, method.ReturnType, method.GetParameters().Select(s => s.ParameterType).ToArray()), method);
-            }
-            
+            var methodDictionary = day
+                .GetMethods()
+                .Where(m => m.GetParameters().Length == 1)
+                .ToDictionary(m => new MethodSignature(m.Name, m.ReturnType, m.GetParameters().Select(s => s.ParameterType).First() ));
+
             foreach(var field in fields)
             {
-                if (field.GetValue(day) is not object input) continue;
+                if (field.GetValue(day) is not object inputValue) continue;
                 if (Attribute.GetCustomAttribute(field, typeof(Example)) is not Example example) continue;
                 
+                var inputType = example.StrictParameterType ? inputValue.GetType() : typeof(IEnumerable<string>);
+                var returnType = example.StrictParameterType ? example.Solution.GetType() : typeof(double);
+
+                if (!example.StrictParameterType && inputValue is string s)
+                {
+                    inputValue = s.Split("\n").Select(s => s.TrimEnd());
+                }
+
+                var methodSignature = new MethodSignature(example.Solver, returnType, inputType);
+
                 Console.Write($"Testing {day.Name} {field.Name}: ");
 
                 string testResult = "Failed to run test.";
-
-                //TODO: HERE START BACK HERE
                 
-                if (lookUp.TryGetValue(new ()))
-                foreach(var method in day.GetMethods())
+                if (methodDictionary.TryGetValue(methodSignature, out var method))
                 {
-                    if (method.Name != example.Solver) continue;
-                    if (method.ReturnType != typeof(double)) continue;
-                    if (method.GetParameters().Length != 1) continue;
-
-                    object? evaluationResult = example.StrictTypeEvaluation ? StrictTypeEvaluation(exampleInput, method) : DefaultTypeEvaluation(exampleInput, method);
+                    if (method.Invoke(obj: null, [ inputValue ]) is not object solverSolution) continue;
                     
-                    if (evaluationResult is double answer)
+                    var solved = example.StrictParameterType ? 
+                        example.Solution.Equals(solverSolution) : 
+                        Convert.ToDouble(example.Solution) == Convert.ToDouble(solverSolution);
+
+                    if (solved)
                     {
-                        if (example.Solution == answer)
-                        {
-                            testResult = $"Passed.";
-                        }
-                        else 
-                        {
-                            testResult = $"Failed. Expected {example.Solution}, Received {answer}.";
-                        }
+                        testResult = "Passed.";
                     }
+                    else 
+                    {
+                        testResult = $"Failed. Expected {example.Solution}, Received {solverSolution}.";
+                    }
+                }
+                else 
+                {
+                    testResult = $"Could not find method for described signature.";
                 }
 
                 Console.WriteLine(testResult);
