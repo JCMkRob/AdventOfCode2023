@@ -5,7 +5,7 @@ using AdventOfCode.Support;
 
 //YearWrapper.CurrentDayRunAndTest();
 YearWrapper.Test(typeof(Day10));
-//YearWrapper.Run(typeof(Day10), 2);
+YearWrapper.Run(typeof(Day10), 2);
 
 // YearWrapper.TestAll();
 // YearWrapper.RunAll();

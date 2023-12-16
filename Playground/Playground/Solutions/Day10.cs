@@ -28,69 +28,67 @@ public static class Day10
 
     [Example(solver: nameof(PartOne), solution: 4)]
     public static readonly string PartOneExampleOne = 
-            """
-            .....
-            .S-7.
-            .|.|.
-            .L-J.
-            .....
-            """;
+        """
+        .....
+        .S-7.
+        .|.|.
+        .L-J.
+        .....
+        """;
     
     [Example(solver: nameof(PartOne), solution: 8)]
     public static readonly string PartOneExampleTwo = 
-            """
-            ..F7.
-            .FJ|.
-            SJ.L7
-            |F--J
-            LJ...
-            """;
+        """
+        ..F7.
+        .FJ|.
+        SJ.L7
+        |F--J
+        LJ...
+        """;
 
     [Example(solver: nameof(PartTwo), solution: 4)]
     public static readonly string PartTwoExampleOne = 
-            """
-            ...........
-            .S-------7.
-            .|F-----7|.
-            .||.....||.
-            .||.....||.
-            .|L-7.F-J|.
-            .|..|.|..|.
-            .L--J.L--J.
-            ...........
-            """;
+        """
+        ...........
+        .S-------7.
+        .|F-----7|.
+        .||.....||.
+        .||.....||.
+        .|L-7.F-J|.
+        .|..|.|..|.
+        .L--J.L--J.
+        ...........
+        """;
 
     [Example(solver: nameof(PartTwo), solution: 8)]
     public static readonly string PartTwoExampleTwo = 
-            """
-            .F----7F7F7F7F-7....
-            .|F--7||||||||FJ....
-            .||.FJ||||||||L7....
-            FJL7L7LJLJ||LJ.L-7..
-            L--J.L7...LJS7F-7L7.
-            ....F-J..F7FJ|L7L7L7
-            ....L7.F7||L7|.L7L7|
-            .....|FJLJ|FJ|F7|.LJ
-            ....FJL-7.||.||||...
-            ....L---J.LJ.LJLJ...
-            """;
+        """
+        .F----7F7F7F7F-7....
+        .|F--7||||||||FJ....
+        .||.FJ||||||||L7....
+        FJL7L7LJLJ||LJ.L-7..
+        L--J.L7...LJS7F-7L7.
+        ....F-J..F7FJ|L7L7L7
+        ....L7.F7||L7|.L7L7|
+        .....|FJLJ|FJ|F7|.LJ
+        ....FJL-7.||.||||...
+        ....L---J.LJ.LJLJ...
+        """;
 
     [Example(solver: nameof(PartTwo), solution: 10)]
     public static readonly string PartTwoExampleThree = 
-            """
-            FF7FSF7F7F7F7F7F---7
-            L|LJ||||||||||||F--J
-            FL-7LJLJ||||||LJL-77
-            F--JF--7||LJLJ7F7FJ-
-            L---JF-JLJ.||-FJLJJ7
-            |F|F-JF---7F7-L7L|7|
-            |FFJF7L7F-JF7|JL---7
-            7-L-JL7||F7|L7F-7F7|
-            L.L7LFJ|||||FJL7||LJ
-            L7JLJL-JLJLJL--JLJ.L
-            """;
-
-    
+        """
+        FF7FSF7F7F7F7F7F---7
+        L|LJ||||||||||||F--J
+        FL-7LJLJ||||||LJL-77
+        F--JF--7||LJLJ7F7FJ-
+        L---JF-JLJ.||-FJLJJ7
+        |F|F-JF---7F7-L7L|7|
+        |FFJF7L7F-JF7|JL---7
+        7-L-JL7||F7|L7F-7F7|
+        L.L7LFJ|||||FJL7||LJ
+        L7JLJL-JLJLJL--JLJ.L
+        """;
 
     [Solution(part: 1)]
     public static double PartOne(IEnumerable<string> input)
@@ -104,7 +102,9 @@ public static class Day10
     [Solution(part: 2)]
     public static double PartTwo(IEnumerable<string> input)
     {
-        int xWidth = input.All(p => p.Length == input.First().Length) ? input.First().Length : throw new Exception();
+        var inputArray = input.Reverse().ToArray();
+
+        int xWidth = input.All(p => p.Length == inputArray[0].Length) ? inputArray[0].Length : throw new Exception();
         int yWidth = input.Count();
     
         var map = MapInput(input, out Point start);
@@ -114,74 +114,57 @@ public static class Day10
 
         HashSet<Point> expandedPipeLoop = [];
 
+        foreach(var pipe in pipeLoop)
+        {
+            var pipeMap = ExpandPoint(new Point(pipe.X * 3, pipe.Y * 3), inputArray[pipe.Y][pipe.X]);
 
+            foreach(var point in pipeMap)
+            {
+                expandedPipeLoop.Add(point);
+            }
+        }
 
         HashSet<Point> external = [];
-        HashSet<Point> toBeChecked = [];
-        
-        
+        Queue<Point> toBeChecked = [];
+
+        void Add(Point point, Point adjacent)
+        {
+            if (!expandedPipeLoop.Contains(point))
+            {
+                external.Add(point);
+                toBeChecked.Enqueue(adjacent);
+            }
+        }
 
         // Bound the region so the algorithm cannot escape.
-        for(int x = 0; x < xWidth; x++)
+        for(int x = 0; x < (xWidth * 3); x++)
         {
             Point point = new (x, 0);
-            
-            if (pipeLoop.Contains(point))
-            {
-                continue;
-            }
-            
-            external.Add(point);
-            toBeChecked.Add(point.North());
+            Add(point, point.North());
         }
-
-        for(int x = 0; x < xWidth; x++)
+        for(int x = 0; x < (xWidth * 3); x++)
         {
-            Point point = new (x, yWidth - 1);
-            
-            if (pipeLoop.Contains(point))
-            {
-                continue;
-            }
-            
-            external.Add(point);
-            toBeChecked.Add(point.South());
+            Point point = new (x, yWidth * 3 - 1);
+            Add(point, point.South());
         }
-
-        for(int y = 0; y < yWidth; y++)
+        for(int y = 1; y < (yWidth * 3 - 1); y++)
         {
             Point point = new (0, y);
-            
-            if (pipeLoop.Contains(point))
-            {
-                continue;
-            }
-            
-            external.Add(point);
-            toBeChecked.Add(point.East());
+            Add(point, point.East());
         }
-
-        for(int y = 0; y < yWidth; y++)
+        for(int y = 1; y < (yWidth * 3 - 1); y++)
         {
-            Point point = new (xWidth - 1, y);
-            
-            if (pipeLoop.Contains(point))
-            {
-                continue;
-            }
-            
-            external.Add(point);
-            toBeChecked.Add(point.West());
+            Point point = new (xWidth * 3 - 1, y);
+            Add(point, point.West());
         }
 
         // Check the bounded region by looking from the outside in.
         while(0 < toBeChecked.Count)
         {
-            Point point = toBeChecked.First();
-            toBeChecked.Remove(point);
+            Point point = toBeChecked.Dequeue();
 
             // already seen the point.
-            if (pipeLoop.Contains(point) || external.Contains(point))
+            if (expandedPipeLoop.Contains(point) || external.Contains(point))
             {
                 continue;
             }
@@ -191,72 +174,57 @@ public static class Day10
             external.Add(point);
 
             // The only way points are added to toBeChecked is if they are not in the loop, and not already checked.
-            if (!pipeLoop.Contains(point) && !external.Contains(point.North()))
+            if (!expandedPipeLoop.Contains(point) && !external.Contains(point.North()))
             {
-                toBeChecked.Add(point.North());
+                toBeChecked.Enqueue(point.North());
             }
 
-            if (!pipeLoop.Contains(point) && !external.Contains(point.East()))
+            if (!expandedPipeLoop.Contains(point) && !external.Contains(point.East()))
             {
-                toBeChecked.Add(point.East());
+                toBeChecked.Enqueue(point.East());
             }
 
-            if (!pipeLoop.Contains(point) && !external.Contains(point.South()))
+            if (!expandedPipeLoop.Contains(point) && !external.Contains(point.South()))
             {
-                toBeChecked.Add(point.South());
+                toBeChecked.Enqueue(point.South());
             }
 
-            if (!pipeLoop.Contains(point) && !external.Contains(point.West()))
+            if (!expandedPipeLoop.Contains(point) && !external.Contains(point.West()))
             {
-                toBeChecked.Add(point.West());
+                toBeChecked.Enqueue(point.West());
             }
         }
 
-        var pipes = input.Reverse().ToArray();
+        double count = 0;
 
-        string s = "";
-
-        for(int y = yWidth - 1; y >= 0; y--)
+        for(int y = 0; y < yWidth; y++)
         {
-            s += "\n";
-
-            for(int x = 0; x < xWidth; x++)
+            for (int x = 0; x < xWidth; x++)
             {
-                char c = pipes[y][x];
-                Point point = new Point(x, y);
+                char c = inputArray[y][x];
+                Point point = new(x * 3, y * 3);
 
-                if (c == '.')
+                if (!external.Contains(point) && !expandedPipeLoop.Contains(point))
                 {
-                    if (external.Contains(point))
-                    {
-                        s += "O";
-                    }
-                    else 
-                    {
-                        s+= "I";
-                    }
-                    
-                }
-                else 
-                {
-                    if (pipeLoop.Contains(point))
-                    {
-                        s += "P";
-                    }
-                    else 
-                    {
-                        s += c;
-                    }
+                    count++;
                 }
             }
         }
 
-        Console.WriteLine(s);
-        // internal are *all points* that are *not external*.
-
-        return xWidth * yWidth - external.Count - pipeLoop.Count;
+        return count;
     }
 
+    private static Point[] ExpandPoint(Point point, char c) => c switch
+    {
+        '|' => [ point.North(), point, point.South() ],
+        '-' => [ point.West(), point, point.East() ],
+        'L' => [ point.North(), point, point.East() ],
+        'J' => [ point.North(), point, point.West() ],
+        '7' => [ point.West(), point, point.South() ],
+        'F' => [ point.East(), point, point.South() ],
+        'S' => [ point.East(), point.North(), point, point.South(), point.West(), ],
+        _ => throw new Exception()
+    };
 
     private static Edge MapPipe(Point point, char c) => c switch
     {
