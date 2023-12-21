@@ -88,6 +88,7 @@ public static class Day20
     {
         Dictionary<string, (Module module, string[] cables)> server = [];
         Queue<(string id, ModuleType module, string[] cables)> conjuctions = [];
+        Dictionary<string, List<string>> conjuctionInputs = [];
         
         foreach(string s in input)
         {
@@ -105,21 +106,19 @@ public static class Day20
                     server.Add(machine.id, (new Broadcast(machine.id), machine.cables));
                     break;
             }
-        }
 
-        var conjuctionHash = conjuctions.Select(c => c.id).ToHashSet();
-        var conjuctionInputs = server
-            .Select(kv => (machine: kv.Key, conjunctions: kv.Value.cables.Where(c => conjuctionHash.Contains(c))))
-            .SelectMany(kv => kv.conjunctions, (parent, child) => (input: parent.machine, conjunction: child))
-            .GroupBy(kv => kv.conjunction)
-            .ToDictionary(kv => kv.Key, kv => kv.Select(m => m.input).ToArray());
+            foreach(var cable in machine.cables)
+            {
+                conjuctionInputs.ListAdd(cable, machine.id);
+            }
+        }
 
         while(0 < conjuctions.Count)
         {
             var (id, module, cables) = conjuctions.Dequeue();
-            var inputs = conjuctionInputs[id];
 
-            server.Add(id, (new Conjunction(id, inputs), cables));
+            var inputs = conjuctionInputs[id];
+            server.Add(id, (new Conjunction(id, [.. inputs]), cables));
         }
 
         return server;
@@ -138,8 +137,6 @@ public static class Day20
         {
             var (inputId, inputPulse, targetModule) = queue.Dequeue();
 
-            Console.WriteLine($"{inputId} -{((inputPulse == Pulse.High) ? "high" : "low")}-> {targetModule}");
-
             if (inputPulse == Pulse.High) highCount++;
             if (inputPulse == Pulse.Low) lowCount++;
 
@@ -157,13 +154,54 @@ public static class Day20
         return (lowCount, highCount);
     }
 
+    private static bool PushButton(this Dictionary<string, (Module module, string[] cables)> server, string module)
+    {
+        Queue<(string id, Pulse pulse, string cable)> queue = [];
+
+        queue.Enqueue(("button", Pulse.Low, "broadcaster"));
+
+        bool success = false;
+        
+        while(0 < queue.Count)
+        {
+            var (inputId, inputPulse, targetModule) = queue.Dequeue();
+
+            if (!server.TryGetValue(targetModule, out var output)) continue;
+
+            if (output.module.Receive(inputId, inputPulse) is Pulse outputPulse)
+            {
+                foreach(var sendTo in output.cables)
+                {
+                    queue.Enqueue((output.module.Id, outputPulse, sendTo));
+
+                    if ((sendTo == module) && (outputPulse == Pulse.Low))
+                    {
+                        success = true;
+                    }
+                }
+            }
+        }
+
+        return success;
+    }
+
     private static int Hash(this Dictionary<string, (Module module, string[] cables)> server)
     {
         return string.Join("", server.Select(m => $"{m.Value.module.Id}{m.Value.module.State}")).GetHashCode();
     }
 
-    [Example(solver: nameof(PartOne), solution: -1)]
-    public static readonly string PartOneExample = 
+    [Example(solver: nameof(PartOne), solution: 32000000)]
+    public static readonly string PartOneExampleOne = 
+        """
+        broadcaster -> a, b, c
+        %a -> b
+        %b -> c
+        %c -> inv
+        &inv -> a
+        """;
+
+    [Example(solver: nameof(PartOne), solution: 11687500)]
+    public static readonly string PartOneExampleTwo = 
         """
         broadcaster -> a
         %a -> inv, con
@@ -183,34 +221,78 @@ public static class Day20
     {
         var server = CreateServer(input);
 
-        var cycle = new Dictionary<int, (int index, double low, double high)>();
+        //var history = new Dictionary<int, (double index, double low, double high)>();
+        var history = new Dictionary<int, (double index, double low, double high)>();
+        var requestedCycles = 1000;
+        var index = 0;
 
-        for(int index = 1; index < 1000; index++)
+        while (true)
         {
             var (lowCount, highCount) = server.PushButton();
             var hash = server.Hash();
 
-            if (cycle.TryGetValue(hash, out var c))
+            if (history.TryGetValue(hash, out var machineState))
             {
+                var initialGroup = history
+                    .Where(s => s.Value.index < machineState.index)
+                    .Select(s => (low: s.Value.low, high: s.Value.high));
+
+                var initialGroupCount = initialGroup.Count();
+
+                var repeatingGroup = history
+                    .Where(s => s.Value.index >= machineState.index)
+                    .Select(s => (low: s.Value.low, high: s.Value.high));
+
+                var repeatingGroupCount = repeatingGroup.Count();
                 
+                var repeatingCount = (requestedCycles - initialGroupCount) / repeatingGroupCount;
+                var remainderOffset = (requestedCycles - initialGroupCount) % repeatingGroupCount;
+
+                var remainderGroup = history
+                    .Where(s => s.Value.index < remainderOffset)
+                    .Select(s => (low: s.Value.low, high: s.Value.high));
+
+                var runningLow = 
+                    initialGroup.Sum(s => s.low) + 
+                    repeatingGroup.Sum(s => s.low) * repeatingCount +
+                    remainderGroup.Sum(s => s.low);
+
+                var runningHigh = 
+                    initialGroup.Sum(s => s.high) + 
+                    repeatingGroup.Sum(s => s.high) * repeatingCount +
+                    remainderGroup.Sum(s => s.high);
+
+                return runningLow * runningHigh;
+            }
+            else if (index == requestedCycles)
+            {
+                var totalGroup = history.Select(s => (low: s.Value.low, high: s.Value.high));
+
+                return totalGroup.Sum(s => s.low) * totalGroup.Sum(s => s.high);
             }
             else 
             {
-                cycle.Add(hash, (index, lowCount, highCount));
+                history.Add(hash, (index++, lowCount, highCount));
             }
         }
 
-        PushButton(server);
-        PushButton(server);
-        PushButton(server);
-        PushButton(server);
-
-        return 0;
+        throw new Exception();
     }
 
     [Solution(part: 2)]
     public static double PartTwo(IEnumerable<string> input)
     {
-        return 0;
+        var server = CreateServer(input);
+        double count = 0;
+
+        while (true)
+        {
+            count++;
+
+            if (server.PushButton(module: "rx"))
+            {
+                return count;
+            }
+        }
     }
 }

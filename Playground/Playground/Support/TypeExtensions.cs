@@ -45,6 +45,57 @@ public static class DictionaryExtensions
             dictionary.Add(key, value);
         }
     }
+
+    public static T Cycle<T>(Func<(int hash, T T)> next, double requestedCycles, 
+        Func<T, T, T> add, 
+        Func<T, T, T> substract)
+    {
+        Dictionary<int, (double index, T value)> history = [];
+
+        T? runningTotal = default;
+
+        foreach (double index in requestedCycles.IncreasingTo())
+        {
+            var (hash, value) = next();
+
+            if (history.TryGetValue(hash, out var beforeItem))
+            { 
+                var beforeIndex = beforeItem.index;
+
+                var repeatingSegmentSize = history.Count - beforeIndex;
+                var repeatingSegmentCount = (requestedCycles - beforeIndex) / repeatingSegmentSize;
+
+                var remainderOffset = (requestedCycles - beforeIndex) % repeatingSegmentSize;
+                var remainderIndex = beforeIndex + remainderOffset - 1;
+
+                T initialAmount = history.Where(h => h.Value.index == (beforeIndex - 1)).FirstOrDefault().Value.value;
+                T repeatingAmount = substract(beforeItem.value, initialAmount);
+                T remainderAmount = history.Where(h => h.Value.index == remainderIndex).FirstOrDefault().Value.value;
+
+                foreach(var _ in (repeatingSegmentCount - 1).IncreasingTo())
+                {
+                    repeatingAmount = add(repeatingAmount, repeatingAmount);
+                }
+
+                return add(initialAmount, remainderAmount);
+            }
+            else 
+            {
+                if (runningTotal == null)
+                {
+                    runningTotal = value;
+                }
+                else 
+                {
+                    runningTotal = add(runningTotal, value);
+                }
+
+                history.Add(hash, (index, value));
+            }
+        }
+
+        throw new Exception();
+    }
 }
 
 public static class Grid
@@ -149,6 +200,7 @@ public static class Grid
         Horizontal
     }
 
+    
     public static TData[][] ApplyToLines<TData, TIndex>(this TData[][] data, 
         Func<TData[], TData[]> function,
         Orientation orientation = Orientation.Horizontal, 
