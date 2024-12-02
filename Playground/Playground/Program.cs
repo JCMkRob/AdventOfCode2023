@@ -4,8 +4,8 @@ using AdventOfCode.Support;
 // await YearBuilder.SetupNewYear();
 
 //YearWrapper.CurrentDayRunAndTest();
-//YearWrapper.Test(typeof(Day20));
-YearWrapper.Run(typeof(Day20), 2);
+//YearWrapper.Test(typeof(Day10));
+YearWrapper.Run(typeof(Day25), 1);
 
 // YearWrapper.TestAll();
 // YearWrapper.RunAll();
